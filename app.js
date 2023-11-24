@@ -5,7 +5,7 @@ import { preferenceRouter } from "./routes/preferenceRouter.js";
 import { departmentRouter } from "./routes/departmentRouter.js";
 
 const app = express();
-const port = process.env.PORT || 3333;
+const port = process.env.PORT || 3306 || 3333;
 
 app.use(express.json());
 app.use(cors());
