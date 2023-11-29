@@ -3,12 +3,11 @@ import connection from "../db.js";
 
 const userRouter = Router();
 
-
 // Read all users
 userRouter.get("/", (req, res) => {
   const query = "SELECT * FROM users";
 
-    connection.query(query, (readErr, readRes) => {
+  connection.query(query, (readErr, readRes) => {
     if (readErr) {
       console.log(readErr);
       res.status(500).json({ error: 'An error occurred while checking for users' });
@@ -22,11 +21,11 @@ userRouter.get("/", (req, res) => {
 userRouter.get("/:user_id", (req, res) => {
   const userId = req.params.user_id;
   const query = 'SELECT * FROM users WHERE user_id = ?';
-  
+
   connection.query(query, [userId], (readErr, readRes) => {
     if (readErr) {
       console.log(readErr);
-      res.status(500).json({ error: 'An error occurred while checking for user' }); 
+      res.status(500).json({ error: 'An error occurred while checking for user' });
     } else {
       if (readRes.length > 0) {
         res.json(readRes[0]);
@@ -39,7 +38,7 @@ userRouter.get("/:user_id", (req, res) => {
 
 // Create user
 userRouter.post("/", (req, res) => {
-  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_preferences, user_type, user_image } = req.body;
+  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image } = req.body;
   const checkEmailQuery = 'SELECT user_id FROM users WHERE email = ?';
   const checkPhoneQuery = 'SELECT user_id FROM users WHERE phone = ?';
 
@@ -61,8 +60,8 @@ userRouter.post("/", (req, res) => {
       }
 
       // If neither is present - create the new user
-      const createQuery = 'INSERT INTO users (first_name, last_name, birthdate, email, phone, street, postal_code, user_preferences, user_type, user_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      connection.query(createQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_preferences, user_type, user_image], (createErr, createRes) => {
+      const createQuery = 'INSERT INTO users (first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      connection.query(createQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image], (createErr, createRes) => {
         if (createErr) {
           console.error('Error occurred while creating the user:', createErr);
           return res.status(500).json({ error: 'An error occurred while creating the user' });
@@ -76,9 +75,9 @@ userRouter.post("/", (req, res) => {
 
 // Update user profile
 userRouter.put("/:user_id", (req, res) => {
-  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_preferences, user_type, user_image } = req.body;
+  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image } = req.body;
   const userId = req.params.user_id;
-  
+
   // Check for uniqueness of email and phone
   const checkUniqueQuery = 'SELECT user_id FROM users WHERE (email = ? OR phone = ?) AND user_id != ?';
   connection.query(checkUniqueQuery, [email, phone, userId], (uniqueErr, uniqueResults) => {
@@ -91,8 +90,8 @@ userRouter.put("/:user_id", (req, res) => {
     }
 
     // Update user profile in the database
-    const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, birthdate = ?, email = ?, phone = ?, street = ?, postal_code = ?, user_preferences = ?, user_type = ?, user_image = ? WHERE user_id = ?';
-    connection.query(updateQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_preferences, user_type, user_image, userId], (updateErr, updateRes) => {
+    const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, birthdate = ?, email = ?, phone = ?, street = ?, postal_code = ?, user_type = ?, user_image = ? WHERE user_id = ?';
+    connection.query(updateQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, userId], (updateErr, updateRes) => {
       if (updateErr) {
         console.error(updateErr);
         return res.status(500).json({ error: 'An error occurred while updating the user profile' });
@@ -116,19 +115,17 @@ userRouter.delete("/:user_id", (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-      const deleteQuery = 'DELETE FROM users WHERE user_id = ?';
+    const deleteQuery = 'DELETE FROM users WHERE user_id = ?';
 
-      connection.query(deleteQuery, [userId], (deleteErr, deleteRes) => {
-        if (deleteErr) {
-          console.log(deleteErr);
-          res.status(500).json({ error: 'An error occurred while deleting the user' });
-        } else {
-          res.status(200).json({ message: 'User and related data deleted successfully' });
-        }
-      });
-      
+    connection.query(deleteQuery, [userId], (deleteErr, deleteRes) => {
+      if (deleteErr) {
+        console.log(deleteErr);
+        res.status(500).json({ error: 'An error occurred while deleting the user' });
+      } else {
+        res.status(200).json({ message: 'User and related data deleted successfully' });
+      }
+    });
   });
 });
-
 
 export { userRouter };
