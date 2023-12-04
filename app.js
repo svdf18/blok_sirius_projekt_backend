@@ -3,7 +3,7 @@ import cors from "cors";
 import { userRouter } from "./routes/userRouter.js";
 import { preferenceRouter } from "./routes/preferenceRouter.js";
 import { departmentRouter } from "./routes/departmentRouter.js";
-import { postRouter } from "./routes/postRouter.js";
+import { recommendationRouter } from "./routes/recommendationRouter.js";
 
 const app = express();
 const port = process.env.PORT || 3306;
@@ -13,7 +13,7 @@ app.use(cors());
 app.use("/users", userRouter);
 app.use("/preferences", preferenceRouter);
 app.use("/departments", departmentRouter);
-app.use("/posts", postRouter);
+app.use("/recommendations", recommendationRouter);
 
 
 app.get("/", (req, res) => {
