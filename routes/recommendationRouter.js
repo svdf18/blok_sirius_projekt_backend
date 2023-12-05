@@ -38,10 +38,12 @@ recommendationRouter.get("/:recommendation_id", (req, res) => {
 
 // Create recommendation
 recommendationRouter.post("/", (req, res) => {
-  const { created_by_id, tagged_user_id, content, category } = req.body;
+  const { created_by_id, tagged_user_id, title, content, category } = req.body;
 
-  const createQuery = 'INSERT INTO recommendations (created_by_id, tagged_user_id, content, category) VALUES (?, ?, ?, ?)';
-  connection.query(createQuery, [created_by_id, tagged_user_id, content, category], (createErr, createRes) => {
+  //check created_by_id i user_db med if/else statement for at tjekke om user_type har rettigheder til at poste.
+
+  const createQuery = 'INSERT INTO recommendations (created_by_id, tagged_user_id, title, content, category) VALUES (?, ?, ?, ?, ?)';
+  connection.query(createQuery, [created_by_id, tagged_user_id, title, content, category], (createErr, createRes) => {
     if (createErr) {
       console.error('Error occurred while creating the recommendation:', createErr);
       return res.status(500).json({ error: 'An error occurred while creating the recommendation' });
@@ -53,11 +55,11 @@ recommendationRouter.post("/", (req, res) => {
 
 // Update recommendation
 recommendationRouter.put("/:recommendation_id", (req, res) => {
-  const { created_by_id, tagged_user_id, content, category } = req.body;
+  const { created_by_id, tagged_user_id, title, content, category } = req.body;
   const recommendationId = req.params.recommendation_id;
 
-  const updateQuery = 'UPDATE recommendations SET created_by_id = ?, tagged_user_id = ?, content = ?, category = ? WHERE recommendation_id = ?';
-  connection.query(updateQuery, [created_by_id, tagged_user_id, content, category, recommendationId], (updateErr, updateRes) => {
+  const updateQuery = 'UPDATE recommendations SET created_by_id = ?, tagged_user_id = ?, title = ?, content = ?, category = ? WHERE recommendation_id = ?';
+  connection.query(updateQuery, [created_by_id, tagged_user_id, title, content, category, recommendationId], (updateErr, updateRes) => {
     if (updateErr) {
       console.error(updateErr);
       return res.status(500).json({ error: 'An error occurred while updating the recommendation' });
