@@ -36,37 +36,75 @@ recommendationRouter.get("/:recommendation_id", (req, res) => {
   });
 });
 
-// Create recommendation
+// Create recommendation // Check on passed created_by_id and set that at the same time
 recommendationRouter.post("/", (req, res) => {
   const { created_by_id, tagged_user_id, title, content, category } = req.body;
 
-  //check created_by_id i user_db med if/else statement for at tjekke om user_type har rettigheder til at poste.
-
-  const createQuery = 'INSERT INTO recommendations (created_by_id, tagged_user_id, title, content, category) VALUES (?, ?, ?, ?, ?)';
-  connection.query(createQuery, [created_by_id, tagged_user_id, title, content, category], (createErr, createRes) => {
-    if (createErr) {
-      console.error('Error occurred while creating the recommendation:', createErr);
-      return res.status(500).json({ error: 'An error occurred while creating the recommendation' });
+  // Check user_type for permission to post
+  const userTypeQuery = 'SELECT user_type FROM users WHERE user_id = ?';
+  connection.query(userTypeQuery, [created_by_id], (userTypeErr, userTypeRes) => {
+    if (userTypeErr) {
+      console.error('Error occurred while checking user_type:', userTypeErr);
+      return res.status(500).json({ error: 'An error occurred while checking user_type' });
     }
-    const newrecommendationId = createRes.insertId;
-    return res.status(201).json({ recommendation_id: newrecommendationId, message: 'recommendation created successfully' });
+
+    const user_type = userTypeRes[0]?.user_type;
+
+    // Check user_type permission
+    if (user_type === 'admin') {
+      // User with admin rights can post
+      const createQuery = 'INSERT INTO recommendations (created_by_id, tagged_user_id, title, content, category) VALUES (?, ?, ?, ?, ?)';
+      connection.query(createQuery, [created_by_id, tagged_user_id, title, content, category], (createErr, createRes) => {
+        if (createErr) {
+          console.error('Error occurred while creating the recommendation:', createErr);
+          return res.status(500).json({ error: 'An error occurred while creating the recommendation' });
+        }
+        const newRecommendationId = createRes.insertId;
+        return res.status(201).json({ recommendation_id: newRecommendationId, message: 'Recommendation created successfully' });
+      });
+    } else {
+      // User without admin rights cannot post
+      console.error('User does not have the necessary permissions to post recommendations');
+      return res.status(403).json({ error: 'User does not have the necessary permissions to post recommendations' });
+    }
   });
 });
+
 
 // Update recommendation
 recommendationRouter.put("/:recommendation_id", (req, res) => {
   const { created_by_id, tagged_user_id, title, content, category } = req.body;
   const recommendationId = req.params.recommendation_id;
 
-  const updateQuery = 'UPDATE recommendations SET created_by_id = ?, tagged_user_id = ?, title = ?, content = ?, category = ? WHERE recommendation_id = ?';
-  connection.query(updateQuery, [created_by_id, tagged_user_id, title, content, category, recommendationId], (updateErr, updateRes) => {
-    if (updateErr) {
-      console.error(updateErr);
-      return res.status(500).json({ error: 'An error occurred while updating the recommendation' });
+  // Check user_type for permission to update
+  const userTypeQuery = 'SELECT user_type FROM users WHERE user_id = ?';
+  connection.query(userTypeQuery, [created_by_id], (userTypeErr, userTypeRes) => {
+    if (userTypeErr) {
+      console.error('Error occurred while checking user_type:', userTypeErr);
+      return res.status(500).json({ error: 'An error occurred while checking user_type' });
     }
-    return res.status(200).json({ recommendation_id: recommendationId, message: 'recommendation updated successfully' });
+
+    const user_type = userTypeRes[0]?.user_type;
+
+    // Check user_type permission
+    if (user_type === 'admin') {
+      // User with admin rights can update
+      const updateQuery = 'UPDATE recommendations SET created_by_id = ?, tagged_user_id = ?, title = ?, content = ?, category = ? WHERE recommendation_id = ?';
+      connection.query(updateQuery, [created_by_id, tagged_user_id, title, content, category, recommendationId], (updateErr, updateRes) => {
+        if (updateErr) {
+          console.error(updateErr);
+          return res.status(500).json({ error: 'An error occurred while updating the recommendation' });
+        }
+        return res.status(200).json({ recommendation_id: recommendationId, message: 'recommendation updated successfully' });
+      });
+    } else {
+      // User without admin rights cannot update
+      console.error('User does not have the necessary permissions to update recommendations');
+      return res.status(403).json({ error: 'User does not have the necessary permissions to update recommendations' });
+    }
   });
 });
+
 
 // Delete a recommendation by recommendation_id
 recommendationRouter.delete("/:recommendation_id", (req, res) => {
