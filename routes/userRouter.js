@@ -38,7 +38,7 @@ userRouter.get("/:user_id", (req, res) => {
 
 // Create user
 userRouter.post("/", (req, res) => {
-  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image } = req.body;
+  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, created_by_id } = req.body;
   const checkEmailQuery = 'SELECT user_id FROM users WHERE email = ?';
   const checkPhoneQuery = 'SELECT user_id FROM users WHERE phone = ?';
 
@@ -59,23 +59,43 @@ userRouter.post("/", (req, res) => {
         return res.status(400).json({ error: 'Phone number already exists' });
       }
 
-      // If neither is present - create the new user
-      const createQuery = 'INSERT INTO users (first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      connection.query(createQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image], (createErr, createRes) => {
-        if (createErr) {
-          console.error('Error occurred while creating the user:', createErr);
-          return res.status(500).json({ error: 'An error occurred while creating the user' });
+      // Check if the user creating the account has admin rights
+      const adminCheckQuery = 'SELECT user_type FROM users WHERE user_id = ?';
+      connection.query(adminCheckQuery, [created_by_id], (adminCheckErr, adminCheckRes) => {
+        if (adminCheckErr) {
+          console.error('Error occurred while checking user_type:', adminCheckErr);
+          return res.status(500).json({ error: 'An error occurred while checking user_type' });
         }
-        const newUser = createRes.insertId;
-        return res.status(201).json({ user_id: newUser, message: 'User created successfully' });
+
+        const creatorUserType = adminCheckRes[0]?.user_type;
+
+        // Check if the user creating the account has admin rights
+        if (creatorUserType === 'admin') {
+          // If the creator has admin rights, proceed to create the new user
+          const createQuery = 'INSERT INTO users (first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, created_by_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          connection.query(createQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, created_by_id], (createErr, createRes) => {
+            if (createErr) {
+              console.error('Error occurred while creating the user:', createErr);
+              return res.status(500).json({ error: 'An error occurred while creating the user' });
+            }
+            const newUser = createRes.insertId;
+            return res.status(201).json({ user_id: newUser, message: 'User created successfully' });
+          });
+        } else {
+          // If the creator doesn't have admin rights, return a 403 Forbidden response
+          console.error('User does not have the necessary permissions to create users');
+          return res.status(403).json({ error: 'User does not have the necessary permissions to create users' });
+        }
       });
     });
   });
 });
 
+
+
 // Update user profile
 userRouter.put("/:user_id", (req, res) => {
-  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image } = req.body;
+  const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, updated_by_id } = req.body;
   const userId = req.params.user_id;
 
   // Check for uniqueness of email and phone
@@ -89,43 +109,93 @@ userRouter.put("/:user_id", (req, res) => {
       return res.status(400).json({ error: 'Email or phone number is already in use by another user' });
     }
 
-    // Update user profile in the database
-    const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, birthdate = ?, email = ?, phone = ?, street = ?, postal_code = ?, user_type = ?, user_image = ? WHERE user_id = ?';
-    connection.query(updateQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, userId], (updateErr, updateRes) => {
-      if (updateErr) {
-        console.error(updateErr);
-        return res.status(500).json({ error: 'An error occurred while updating the user profile' });
+    // Check if the user updating the account has admin rights
+    const adminCheckQuery = 'SELECT user_type FROM users WHERE user_id = ?';
+    connection.query(adminCheckQuery, [updated_by_id], (adminCheckErr, adminCheckRes) => {
+      if (adminCheckErr) {
+        console.error('Error occurred while checking user_type:', adminCheckErr);
+        return res.status(500).json({ error: 'An error occurred while checking user_type' });
       }
-      return res.status(200).json({ user_id: userId, message: 'User profile updated successfully' });
-    });
-  });
-});
 
-// Delete a user by user_id
-userRouter.delete("/:user_id", (req, res) => {
-  const userId = req.params.user_id;
+      const updaterUserType = adminCheckRes[0]?.user_type;
 
-  const checkQuery = 'SELECT user_id FROM users WHERE user_id = ?';
-  connection.query(checkQuery, [userId], (checkErr, checkRes) => {
-    if (checkErr) {
-      console.log(checkErr);
-      return res.status(500).json({ error: 'An error occurred while checking the user' });
-    }
-    if (checkRes.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const deleteQuery = 'DELETE FROM users WHERE user_id = ?';
-
-    connection.query(deleteQuery, [userId], (deleteErr, deleteRes) => {
-      if (deleteErr) {
-        console.log(deleteErr);
-        res.status(500).json({ error: 'An error occurred while deleting the user' });
+      // Check if the user updating the account has admin rights
+      if (updaterUserType === 'admin') {
+        // If the updater has admin rights, proceed with the user profile update
+        const updateQuery = 'UPDATE users SET first_name = ?, last_name = ?, birthdate = ?, email = ?, phone = ?, street = ?, postal_code = ?, user_type = ?, user_image = ?, department = ?, updated_by_id = ? WHERE user_id = ?';
+        connection.query(updateQuery, [first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, updated_by_id, userId], (updateErr, updateRes) => {
+          if (updateErr) {
+            console.error(updateErr);
+            return res.status(500).json({ error: 'An error occurred while updating the user profile' });
+          }
+          return res.status(200).json({ user_id: userId, message: 'User profile updated successfully' });
+        });
       } else {
-        res.status(200).json({ message: 'User and related data deleted successfully' });
+        // If the updater doesn't have admin rights, return a 403 Forbidden response
+        console.error('User does not have the necessary permissions to update user profiles');
+        return res.status(403).json({ error: 'User does not have the necessary permissions to update user profiles' });
       }
     });
   });
 });
+
+
+userRouter.delete("/:user_id/:currentUserId", (req, res) => {
+  const userId = req.params.user_id;
+  const currentUserId = req.params.currentUserId;
+
+  // Check if the user deleting the account has admin rights
+  const adminCheckQuery = 'SELECT user_type FROM users WHERE user_id = ?';
+  connection.query(adminCheckQuery, [currentUserId], (adminCheckErr, adminCheckRes) => {
+    if (adminCheckErr) {
+      console.error('Error occurred while checking user_type:', adminCheckErr);
+      return res.status(500).json({ error: 'An error occurred while checking user_type' });
+    }
+
+    const currentUserType = adminCheckRes[0]?.user_type;
+
+    // Debugging information
+    console.log('User ID:', userId);
+    console.log('Current User Type:', currentUserType);
+
+    // Check if the user deleting the account has admin rights
+    if (currentUserType === 'admin') {
+      // Check the count of users with user_type 'admin'
+      const countAdminQuery = 'SELECT COUNT(*) AS adminCount FROM users WHERE user_type = ?';
+      connection.query(countAdminQuery, ['admin'], (countAdminErr, countAdminRes) => {
+        if (countAdminErr) {
+          console.error('Error occurred while counting admin users:', countAdminErr);
+          return res.status(500).json({ error: 'An error occurred while counting admin users' });
+        }
+
+        const adminCount = countAdminRes[0]?.adminCount || 0;
+
+        // Ensure there is at least one admin user before deletion
+        if (adminCount > 1) {
+          // If the count is greater than 1, proceed with the user deletion
+          const deleteQuery = 'DELETE FROM users WHERE user_id = ?';
+          connection.query(deleteQuery, [userId], (deleteErr, deleteRes) => {
+            if (deleteErr) {
+              console.error(deleteErr);
+              res.status(500).json({ error: 'An error occurred while deleting the user' });
+            } else {
+              res.status(200).json({ message: 'User and related data deleted successfully' });
+            }
+          });
+        } else {
+          // If there is only one or no admin users, prevent deletion
+          console.error('Cannot delete the last admin user');
+          return res.status(403).json({ error: 'Cannot delete the last admin user' });
+        }
+      });
+    } else {
+      // If the deleter doesn't have admin rights, return a 403 Forbidden response
+      console.error('User does not have the necessary permissions to delete users');
+      return res.status(403).json({ error: 'User does not have the necessary permissions to delete users' });
+    }
+  });
+});
+
+
 
 export { userRouter };

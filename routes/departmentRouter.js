@@ -5,7 +5,7 @@ const departmentRouter = Router();
 
 // Read all departments
 departmentRouter.get("/", (req, res) => {
-  const query = "SELECT * FROM departments";
+  const query = "SELECT DISTINCT department_name FROM departments";
 
   connection.query(query, (readErr, readRes) => {
     if (readErr) {
@@ -17,80 +17,24 @@ departmentRouter.get("/", (req, res) => {
   });
 });
 
-// Read department by department_id
-departmentRouter.get("/:department_id", (req, res) => {
-  const departmentId = req.params.department_id;
-  const query = 'SELECT * FROM departments WHERE department_id = ?';
+// Read department by user_id
+departmentRouter.get("/user/:user_id", (req, res) => {
+  const userId = req.params.user_id;
+  const query = 'SELECT d.department_name FROM departments d JOIN users u ON d.user_id = u.user_id WHERE u.user_id = ?';
 
-  connection.query(query, [departmentId], (readErr, readRes) => {
+  connection.query(query, [userId], (readErr, readRes) => {
     if (readErr) {
       console.log(readErr);
       res.status(500).json({ error: 'An error occurred while checking for the department' });
     } else {
       if (readRes.length > 0) {
-        res.json(readRes[0]);
+        res.json({ department_name: readRes[0].department_name });
       } else {
-        res.status(404).json({ error: 'Department not found' });
+        res.status(404).json({ error: 'Department not found for the specified user_id' });
       }
     }
   });
 });
 
-// Create department
-departmentRouter.post("/", (req, res) => {
-  const { department_name, user_id } = req.body;
-
-  const createQuery = 'INSERT INTO departments (department_name, user_id) VALUES (?, ?)';
-  connection.query(createQuery, [department_name, user_id], (createErr, createRes) => {
-    if (createErr) {
-      console.error('Error occurred while creating the department:', createErr);
-      return res.status(500).json({ error: 'An error occurred while creating the department' });
-    }
-    const newDepartmentId = createRes.insertId;
-    return res.status(201).json({ department_id: newDepartmentId, message: 'Department created successfully' });
-  });
-});
-
-// Update department
-departmentRouter.put("/:department_id", (req, res) => {
-  const { department_name, user_id } = req.body;
-  const departmentId = req.params.department_id;
-
-  const updateQuery = 'UPDATE departments SET department_name = ?, user_id = ? WHERE department_id = ?';
-  connection.query(updateQuery, [department_name, user_id, departmentId], (updateErr, updateRes) => {
-    if (updateErr) {
-      console.error(updateErr);
-      return res.status(500).json({ error: 'An error occurred while updating the department' });
-    }
-    return res.status(200).json({ department_id: departmentId, message: 'Department updated successfully' });
-  });
-});
-
-// Delete a department by department_id
-departmentRouter.delete("/:department_id", (req, res) => {
-  const departmentId = req.params.department_id;
-
-  const checkQuery = 'SELECT department_id FROM departments WHERE department_id = ?';
-  connection.query(checkQuery, [departmentId], (checkErr, checkRes) => {
-    if (checkErr) {
-      console.log(checkErr);
-      return res.status(500).json({ error: 'An error occurred while checking the department' });
-    }
-    if (checkRes.length === 0) {
-      return res.status(404).json({ error: 'Department not found' });
-    }
-
-    const deleteQuery = 'DELETE FROM departments WHERE department_id = ?';
-
-    connection.query(deleteQuery, [departmentId], (deleteErr, deleteRes) => {
-      if (deleteErr) {
-        console.log(deleteErr);
-        res.status(500).json({ error: 'An error occurred while deleting the department' });
-      } else {
-        res.status(200).json({ message: 'Department deleted successfully' });
-      }
-    });
-  });
-});
 
 export { departmentRouter };
