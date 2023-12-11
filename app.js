@@ -7,6 +7,7 @@ import { recommendationRouter } from "./routes/recommendationRouter.js";
 import { eventRouter } from "./routes/eventRouter.js";
 import { authRouter } from "./routes/authRouter.js";
 import { eventDepartmentRouter } from "./routes/eventDepartmentRouter.js";
+import { linkUserToDepartmentRouter } from "./routes/linkUserDepartmentRouter.js";
 
 const app = express();
 const port = process.env.PORT || 3306;
@@ -20,6 +21,7 @@ app.use("/recommendations", recommendationRouter);
 app.use("/events", eventRouter);
 app.use("/api/auth", authRouter);
 app.use("/event-departments", eventDepartmentRouter)
+app.use("/link-user-to-department", linkUserToDepartmentRouter)
 
 
 app.get("/", (req, res) => {

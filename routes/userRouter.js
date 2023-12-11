@@ -124,8 +124,6 @@ userRouter.post("/", (req, res) => {
   });
 });
 
-
-
 // Update user profile
 userRouter.put("/:user_id", (req, res) => {
   const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, updated_by_id } = req.body;
