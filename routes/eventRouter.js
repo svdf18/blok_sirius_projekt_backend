@@ -1,5 +1,6 @@
 import { Router } from "express";
 import connection from "../db.js";
+import { promisify } from 'util';
 
 const eventRouter = Router();
 
@@ -36,30 +37,57 @@ eventRouter.get("/:event_id", (req, res) => {
   });
 });
 
-// Create event
-eventRouter.post("/", (req, res) => {
+// // Create event
+// eventRouter.post("/", (req, res) => {
+//   const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
+
+//   const createQuery =
+//     'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  
+//   connection.query(
+//     createQuery,
+//     [ created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location],
+//     (createErr, createRes) => {
+//       if (createErr) {
+//         console.error('Error occurred while creating the event:', createErr);
+//         return res
+//           .status(500)
+//           .json({ error: 'An error occurred while creating the event' });
+//       }
+//       const newEvent = createRes.insertId;
+//       return res
+//         .status(201)
+//         .json({ event_id: newEvent, message: 'Event created successfully' });
+//     }
+//   );
+// });
+
+eventRouter.post("/", async (req, res, next) => {
   const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
 
   const createQuery =
     'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  
-  connection.query(
-    createQuery,
-    [ created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location],
-    (createErr, createRes) => {
-      if (createErr) {
-        console.error('Error occurred while creating the event:', createErr);
-        return res
-          .status(500)
-          .json({ error: 'An error occurred while creating the event' });
-      }
-      const newEvent = createRes.insertId;
-      return res
-        .status(201)
-        .json({ event_id: newEvent, message: 'Event created successfully' });
-    }
-  );
+
+  // Start a transaction
+  try {
+    await promisify(connection.beginTransaction.bind(connection))();
+
+    const createRes = await promisify(connection.query.bind(connection))(createQuery, [created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location]);
+
+    // Commit the transaction
+    await promisify(connection.commit.bind(connection))();
+
+    // Pass the new event ID to the next middleware
+    req.newEventId = createRes.insertId;
+    next();
+  } catch (error) {
+    // Rollback the transaction in case of an error
+    await promisify(connection.rollback.bind(connection))();
+    console.error('Transaction rolled back due to error:', error);
+    res.status(500).json({ error: 'An error occurred while processing the request' });
+  }
 });
+
 
 // Update event details
 eventRouter.put("/:event_id", (req, res) => {

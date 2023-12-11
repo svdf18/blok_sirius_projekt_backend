@@ -36,6 +36,39 @@ userRouter.get("/:user_id", (req, res) => {
   });
 });
 
+// Get users by department name
+userRouter.get("/byDepartment/:department_name", (req, res) => {
+  const departmentName = req.params.department_name;
+
+  // Step 1: Find the department ID based on the department name
+  const findDepartmentIdQuery = 'SELECT department_id FROM departments WHERE department_name = ?';
+
+  connection.query(findDepartmentIdQuery, [departmentName], (findDeptErr, findDeptRes) => {
+    if (findDeptErr) {
+      console.log(findDeptErr);
+      return res.status(500).json({ error: 'An error occurred while finding department ID' });
+    }
+
+    if (findDeptRes.length === 0) {
+      return res.status(404).json({ error: 'Department not found' });
+    }
+
+    const departmentId = findDeptRes[0].department_id;
+
+    // Step 2: Get users from the users table using the department name
+    const getUsersQuery = 'SELECT * FROM users WHERE department = ?';
+
+    connection.query(getUsersQuery, [departmentName], (getUsersErr, getUsersRes) => {
+      if (getUsersErr) {
+        console.log(getUsersErr);
+        return res.status(500).json({ error: 'An error occurred while fetching users by department' });
+      }
+
+      res.json(getUsersRes);
+    });
+  });
+});
+
 // Create user
 userRouter.post("/", (req, res) => {
   const { first_name, last_name, birthdate, email, phone, street, postal_code, user_type, user_image, department, created_by_id } = req.body;
