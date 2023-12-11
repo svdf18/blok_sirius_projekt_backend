@@ -38,32 +38,52 @@ eventRouter.get("/:event_id", (req, res) => {
 
 // Create event
 eventRouter.post("/", (req, res) => {
-  const { user_id_creator, title, description, date, time, location } = req.body;
+  const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
 
-  const createQuery = 'INSERT INTO events (user_id_creator, title, description, date, time, location) VALUES (?, ?, ?, ?, ?, ?)';
-  connection.query(createQuery, [user_id_creator, title, description, date, time, location], (createErr, createRes) => {
-    if (createErr) {
-      console.error('Error occurred while creating the event:', createErr);
-      return res.status(500).json({ error: 'An error occurred while creating the event' });
+  const createQuery =
+    'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  
+  connection.query(
+    createQuery,
+    [ created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location],
+    (createErr, createRes) => {
+      if (createErr) {
+        console.error('Error occurred while creating the event:', createErr);
+        return res
+          .status(500)
+          .json({ error: 'An error occurred while creating the event' });
+      }
+      const newEvent = createRes.insertId;
+      return res
+        .status(201)
+        .json({ event_id: newEvent, message: 'Event created successfully' });
     }
-    const newEvent = createRes.insertId;
-    return res.status(201).json({ event_id: newEvent, message: 'Event created successfully' });
-  });
+  );
 });
 
 // Update event details
 eventRouter.put("/:event_id", (req, res) => {
-  const { user_id_creator, title, description, date, time, location } = req.body;
+  const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
   const eventId = req.params.event_id;
 
-  const updateQuery = 'UPDATE events SET user_id_creator = ?, title = ?, description = ?, date = ?, time = ?, location = ? WHERE event_id = ?';
-  connection.query(updateQuery, [user_id_creator, title, description, date, time, location, eventId], (updateErr, updateRes) => {
-    if (updateErr) {
-      console.error(updateErr);
-      return res.status(500).json({ error: 'An error occurred while updating the event details' });
+  const updateQuery =
+    'UPDATE events SET created_by_id = ?, title = ?, description = ?, date = ?, start_time = ?, end_time = ?, deadline_attend = ?, deadline_unattend = ?, location = ? WHERE event_id = ?';
+
+  connection.query(
+    updateQuery,
+    [created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location, eventId],
+    (updateErr, updateRes) => {
+      if (updateErr) {
+        console.error(updateErr);
+        return res
+          .status(500)
+          .json({ error: 'An error occurred while updating the event details' });
+      }
+      return res
+        .status(200)
+        .json({ event_id: eventId, message: 'Event details updated successfully' });
     }
-    return res.status(200).json({ event_id: eventId, message: 'Event details updated successfully' });
-  });
+  );
 });
 
 // Delete an event by event_id
