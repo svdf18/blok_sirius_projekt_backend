@@ -8,6 +8,7 @@ import { eventRouter } from "./routes/eventRouter.js";
 import { authRouter } from "./routes/authRouter.js";
 import { eventDepartmentRouter } from "./routes/eventDepartmentRouter.js";
 import { linkUserToDepartmentRouter } from "./routes/linkUserDepartmentRouter.js";
+import { linkUserToEventRouter } from "./routes/linkUserEventRouter.js";
 
 const app = express();
 const port = process.env.PORT || 3306;
@@ -22,6 +23,7 @@ app.use("/events", eventRouter);
 app.use("/api/auth", authRouter);
 app.use("/event-departments", eventDepartmentRouter)
 app.use("/link-user-to-department", linkUserToDepartmentRouter)
+app.use("/link-user-to-event", linkUserToEventRouter)
 
 
 app.get("/", (req, res) => {
