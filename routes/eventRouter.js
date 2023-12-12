@@ -38,14 +38,14 @@ eventRouter.get("/:event_id", (req, res) => {
 
 // Create event
 eventRouter.post("/", (req, res) => {
-  const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
+  const { created_by_id, title, description, date, start_time, end_time, location } = req.body;
 
   const createQuery =
-    'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, location) VALUES (?, ?, ?, ?, ?, ?, ?)';
   
   connection.query(
     createQuery,
-    [ created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location],
+    [created_by_id, title, description, date, start_time, end_time, location],
     (createErr, createRes) => {
       if (createErr) {
         console.error('Error occurred while creating the event:', createErr);
@@ -62,16 +62,16 @@ eventRouter.post("/", (req, res) => {
 });
 
 // eventRouter.post("/", async (req, res, next) => {
-//   const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
+//   const { created_by_id, title, description, date, start_time, end_time, location } = req.body;
 
 //   const createQuery =
-//     'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+//     'INSERT INTO events (created_by_id, title, description, date, start_time, end_time, location) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
 //   // Start a transaction
 //   try {
 //     await promisify(connection.beginTransaction.bind(connection))();
 
-//     const createRes = await promisify(connection.query.bind(connection))(createQuery, [created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location]);
+//     const createRes = await promisify(connection.query.bind(connection))(createQuery, [created_by_id, title, description, date, start_time, end_time, location]);
 
 //     // Commit the transaction
 //     await promisify(connection.commit.bind(connection))();
@@ -87,18 +87,17 @@ eventRouter.post("/", (req, res) => {
 //   }
 // });
 
-
 // Update event details
 eventRouter.put("/:event_id", (req, res) => {
-  const { created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location } = req.body;
+  const { created_by_id, title, description, date, start_time, end_time, location } = req.body;
   const eventId = req.params.event_id;
 
   const updateQuery =
-    'UPDATE events SET created_by_id = ?, title = ?, description = ?, date = ?, start_time = ?, end_time = ?, deadline_attend = ?, deadline_unattend = ?, location = ? WHERE event_id = ?';
+    'UPDATE events SET created_by_id = ?, title = ?, description = ?, date = ?, start_time = ?, end_time = ?, location = ? WHERE event_id = ?';
 
   connection.query(
     updateQuery,
-    [created_by_id, title, description, date, start_time, end_time, deadline_attend, deadline_unattend, location, eventId],
+    [created_by_id, title, description, date, start_time, end_time, location, eventId],
     (updateErr, updateRes) => {
       if (updateErr) {
         console.error(updateErr);
@@ -112,6 +111,7 @@ eventRouter.put("/:event_id", (req, res) => {
     }
   );
 });
+
 
 // Delete an event by event_id
 eventRouter.delete("/:event_id", (req, res) => {
