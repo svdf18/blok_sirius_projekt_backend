@@ -5,7 +5,7 @@ const eventRouter = Router();
 
 // Read all events
 eventRouter.get("/", (req, res) => {
-  const query = "SELECT created_by_id, title, description, date, start_time, location FROM events";
+  const query = "SELECT * FROM events";
 
   connection.query(query, (readErr, readRes) => {
     if (readErr) {
@@ -20,7 +20,7 @@ eventRouter.get("/", (req, res) => {
 // Read event by id
 eventRouter.get("/:event_id", (req, res) => {
   const eventId = req.params.event_id;
-  const query = 'SELECT created_by_id, title, description, date, start_time, location FROM events WHERE event_id = ?';
+  const query = 'SELECT * FROM events WHERE event_id = ?';
 
   connection.query(query, [eventId], (readErr, readRes) => {
     if (readErr) {
@@ -85,7 +85,6 @@ eventRouter.put("/:event_id", (req, res) => {
     }
   );
 });
-
 
 // Delete an event by event_id
 eventRouter.delete("/:event_id", (req, res) => {
