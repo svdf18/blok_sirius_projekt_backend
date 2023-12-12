@@ -19,4 +19,5 @@ linkUserToDepartmentRouter.post('/', (req, res) => {
   });
 });
 
+
 export { linkUserToDepartmentRouter };
