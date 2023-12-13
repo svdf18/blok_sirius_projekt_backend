@@ -3,6 +3,24 @@ import connection from "../db.js";
 
 const eventDepartmentRouter = Router();
 
+// Get departments for a specific event
+eventDepartmentRouter.get('/:eventId', (req, res) => {
+  const { eventId } = req.params;
+
+  const selectQuery = 'SELECT department_name FROM event_departments INNER JOIN departments ON event_departments.department_id = departments.department_id WHERE event_departments.event_id = ?';
+
+  connection.query(selectQuery, [eventId], (error, results) => {
+    if (error) {
+      console.error('Error fetching departments:', error);
+      res.status(500).json({ error: 'An error occurred while processing the request' });
+      return;
+    }
+
+    const departments = results.map((result) => result.department_name);
+    res.status(200).json(departments);
+  });
+});
+
 // eventDepartmentRouter.post
 eventDepartmentRouter.post("/:eventId", (req, res) => {
   const { eventId } = req.params;
