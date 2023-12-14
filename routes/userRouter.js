@@ -3,9 +3,9 @@ import connection from "../db.js";
 
 const userRouter = Router();
 
-// Read all users
+// Read all users and presort by first_name
 userRouter.get("/", (req, res) => {
-  const query = "SELECT * FROM users";
+  const query = "SELECT * FROM users ORDER BY first_name";
 
   connection.query(query, (readErr, readRes) => {
     if (readErr) {

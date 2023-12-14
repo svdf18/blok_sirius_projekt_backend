@@ -27,9 +27,9 @@ app.use("/link-user-to-event", linkUserToEventRouter)
 
 
 app.get("/", (req, res) => {
-  res.send("Users");
+  res.send("Blok Sirius");
 });
 
 app.listen(port, () => {
-  console.log(`App running on http://localhost:${port}`);
+  console.log(`App running`);
 })
