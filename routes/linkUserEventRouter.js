@@ -93,48 +93,6 @@ linkUserToEventRouter.post('/mark-attendance', (req, res) => {
   });
 });
 
-linkUserToEventRouter.post('/unattend-event', (req, res) => {
-  const { userId, eventId } = req.body;
-
-  // Check if the user is marked as attending
-  const checkQuery = 'SELECT * FROM user_events WHERE user_id = ? AND event_id = ?';
-
-  connection.query(checkQuery, [userId, eventId], (checkErr, checkResults) => {
-    if (checkErr) {
-      console.error(`Error checking attendance for user ${userId} at event ${eventId}:`, checkErr);
-      res.status(500).json({ error: 'An error occurred while checking attendance' });
-    } else if (checkResults.length === 0) {
-      // If the user is not marked as attending, return a message
-      res.status(200).json({ message: 'User is not marked as attending this event' });
-    } else {
-      // If the user is marked as attending, proceed with un-attending
-      const unattendQuery = 'DELETE FROM user_events WHERE user_id = ? AND event_id = ?';
-
-      connection.query(unattendQuery, [userId, eventId], (unattendErr) => {
-        if (unattendErr) {
-          console.error(`Error unattending event for user ${userId} at event ${eventId}:`, unattendErr);
-          res.status(500).json({ error: 'An error occurred while unattending event' });
-        } else {
-          console.log(`User ${userId} unattended event ${eventId}`);
-
-          // Fetch the updated list of attending users
-          const getUsersQuery = 'SELECT user_id FROM user_events WHERE event_id = ?';
-          connection.query(getUsersQuery, [eventId], (getUsersErr, results) => {
-            if (getUsersErr) {
-              console.error(`Error fetching attending users for event ${eventId}:`, getUsersErr);
-              res.status(500).json({ error: 'An error occurred while fetching attending users' });
-            } else {
-              const attendingUsers = results.map((result) => result.user_id);
-              res.status(200).json({ message: 'Unattended successfully', attendingUsers });
-            }
-          });
-        }
-      });
-    }
-  });
-});
-
-
 linkUserToEventRouter.get('/attending-users', (req, res) => {
   const { eventId } = req.query;
 
