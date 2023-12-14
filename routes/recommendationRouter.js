@@ -5,7 +5,7 @@ const recommendationRouter = Router();
 
 // Read all recommendations
 recommendationRouter.get("/", (req, res) => {
-  const query = "SELECT * FROM recommendations";
+  const query = "SELECT * FROM recommendations ORDER BY title";
 
   connection.query(query, (readErr, readRes) => {
     if (readErr) {
