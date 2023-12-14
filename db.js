@@ -18,7 +18,7 @@ if (process.env.MYSQL_CERT) {
 
 const connection = mysql.createConnection(dbConfig);
 
-// UNCOMMENT if you want to run locally
+// UNCOMMENT if you want to run loacally
 
 // import mysql from "mysql2";
 // import "dotenv/config";
