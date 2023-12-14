@@ -11,7 +11,7 @@ import { linkUserToDepartmentRouter } from "./routes/linkUserDepartmentRouter.js
 import { linkUserToEventRouter } from "./routes/linkUserEventRouter.js";
 
 const app = express();
-const port = process.env.PORT || 3306;
+const port = process.env.PORT || 3333;
 
 app.use(express.json());
 app.use(cors());
@@ -27,7 +27,7 @@ app.use("/link-user-to-event", linkUserToEventRouter)
 
 
 app.get("/", (req, res) => {
-  res.send("Users");
+  res.send("Blok Sirius");
 });
 
 app.listen(port, () => {

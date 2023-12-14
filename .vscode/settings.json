@@ -1,0 +1,4 @@
+{
+  "appService.defaultWebAppToDeploy": "/subscriptions/f25ccadc-5b29-40e3-ac98-047b2d35b109/resourceGroups/block-sirius-group-new/providers/Microsoft.Web/sites/block-sirius-backend-new",
+  "appService.deploySubpath": "."
+}
