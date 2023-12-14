@@ -3,7 +3,7 @@
 ## Installation
 
 1. Download or clone this repository:
-- [Backend Repository](https://github.com/svdf18/blok_sirius_projekt_backend/tree/sprint7)
+- [Backend Repository](https://github.com/svdf18/blok_sirius_projekt_backend/tree/deployment)
 
 2. Navigate to the project directory:
 
